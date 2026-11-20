@@ -16,6 +16,7 @@ export default function RootLayout() {
         }}>
         <Stack.Screen name="index" options={{ title: 'Channel Surfing' }} />
         <Stack.Screen name="surf" options={{ title: 'Switching channel' }} />
+        <Stack.Screen name="remote" options={{ title: 'Remote' }} />
       </Stack>
     </>
   );

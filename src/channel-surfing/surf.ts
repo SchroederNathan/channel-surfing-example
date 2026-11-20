@@ -55,17 +55,22 @@ async function runSurf(target: ChannelName, emit: (state: SurfState) => void): P
         emit({ phase: 'up-to-date', channel: target });
         return;
       }
-      overrideChannel(Updates.channel);
-      emit({
-        phase: 'no-update',
-        channel: target,
-        message: `No compatible update on ${target} for runtime ${Updates.runtimeVersion ?? 'unknown'}: ${NOT_AVAILABLE_REASONS[check.reason]}. Still on ${Updates.channel ?? 'the build channel'}.`,
-      });
-      return;
+      // Leaving a PR channel must reload even with nothing new to download. The cleared
+      // override takes effect on reload, as the Expo docs' switch-back flow does.
+      if (target !== BUILD_CHANNEL) {
+        overrideChannel(Updates.channel);
+        emit({
+          phase: 'no-update',
+          channel: target,
+          message: `No compatible update on ${target} for runtime ${Updates.runtimeVersion ?? 'unknown'}: ${NOT_AVAILABLE_REASONS[check.reason]}. Still on ${Updates.channel ?? 'the build channel'}.`,
+        });
+        return;
+      }
+    } else {
+      emit({ phase: 'downloading', channel: target });
+      await Updates.fetchUpdateAsync();
     }
 
-    emit({ phase: 'downloading', channel: target });
-    await Updates.fetchUpdateAsync();
     emit({ phase: 'reloading', channel: target });
     await Updates.reloadAsync({
       reloadScreenOptions: {

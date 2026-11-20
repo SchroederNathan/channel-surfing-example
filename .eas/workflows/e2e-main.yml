@@ -1,0 +1,75 @@
+name: e2e screens on main
+
+# Takes one screenshot per screen on main and keeps them on Expo Hosting at the
+# e2e-screens-main alias. Each PR run compares its screens with these.
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch: {}
+
+concurrency:
+  group: e2e-main
+  cancel_in_progress: true
+
+defaults:
+  tools:
+    node: '24'
+
+jobs:
+  fingerprint:
+    type: fingerprint
+    environment: preview
+
+  get_build:
+    type: get-build
+    needs: [fingerprint]
+    params:
+      platform: ios
+      profile: e2e
+      simulator: true
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+      wait_for_in_progress: true
+
+  build:
+    type: build
+    needs: [get_build]
+    if: ${{ !needs.get_build.outputs.build_id }}
+    params:
+      platform: ios
+      profile: e2e
+
+  repack:
+    type: repack
+    needs: [get_build]
+    if: ${{ needs.get_build.outputs.build_id }}
+    params:
+      build_id: ${{ needs.get_build.outputs.build_id }}
+      profile: e2e
+
+  screens:
+    name: Store the main screenshots
+    needs: [get_build]
+    after: [build, repack]
+    environment: preview
+    env:
+      CI: '1'
+      E2E_TELEMETRY_DISABLED: '1'
+      E2E_IOS_BUILD_ID: ${{ after.build.outputs.build_id || after.repack.outputs.build_id }}
+      HEAD_SHA: ${{ github.sha }}
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Take the screenshots
+        run: |
+          : "${E2E_IOS_BUILD_ID:?No build. Check the build or repack job of this run.}"
+          env -u GITHUB_TOKEN npx e2e run --tag screens --update-snapshots --retries 0 --output .e2e-screens --reporter list
+          node scripts/e2e-pr.mjs baseline
+      - name: Deploy them to Expo Hosting
+        run: npx --yes eas-cli@latest deploy --export-dir .e2e-evidence --alias e2e-screens-main --non-interactive
+      - uses: eas/upload_artifact
+        if: ${{ always() }}
+        with:
+          type: other
+          name: e2e-screens-main
+          path: .e2e-screens

@@ -66,7 +66,7 @@ jobs:
         run: |
           : "${E2E_IOS_BUILD_ID:?No build. Check the build or repack job of this run.}"
           set +e
-          env -u GITHUB_TOKEN npx e2e run --reporter list,markdown,json
+          env -u GITHUB_TOKEN npx e2e run --reporter list,markdown
           status=$?
           set -e
           if [ -s .e2e/summary.md ]; then
@@ -119,7 +119,7 @@ jobs:
           set +e
           # The agent reads the diff and drives the app. It never gets the GitHub token.
           env -u GITHUB_TOKEN npx e2e explore --changed-since "origin/$BASE_REF" --max-steps 6 \
-            --output .e2e-review --reporter list,markdown,json --video on
+            --output .e2e-review --reporter list,markdown --video on
           status=$?
           set -e
           node scripts/post-pr-review.mjs .e2e-review

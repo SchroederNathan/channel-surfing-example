@@ -1,21 +1,26 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useUpdates } from 'expo-updates';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { parseChannelName } from '@/channel-surfing/channel';
+import { INITIAL_LAUNCH_PARAM, parseChannelName } from '@/channel-surfing/channel';
 import { useChannelSurf } from '@/channel-surfing/surf';
 import { SurfStatus } from '@/channel-surfing/surf-status';
 import { usePalette } from '@/theme';
 
 export default function Surf() {
   const palette = usePalette();
-  const params = useLocalSearchParams<{ channel?: string }>();
+  const params = useLocalSearchParams<{ channel?: string; [INITIAL_LAUNCH_PARAM]?: string }>();
   const channel = parseChannelName(params.channel);
   const { state, surf } = useChannelSurf();
+  const { restartCount } = useUpdates();
+  // The launch link comes back on every reload. Only the first JS run since cold start may act on it.
+  const replayed = params[INITIAL_LAUNCH_PARAM] !== undefined && restartCount > 0;
 
   useEffect(() => {
-    if (channel) surf(channel);
-  }, [channel, surf]);
+    if (replayed) router.replace('/');
+    else if (channel) surf(channel);
+  }, [replayed, channel, surf]);
 
   useEffect(() => {
     if (state.phase === 'up-to-date') router.replace('/');

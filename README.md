@@ -24,7 +24,7 @@ Merges to `main` publish to the `production` channel through the `production` wo
 1. Make a tester build. Run `eas workflow:run .eas/workflows/build.yml`, then install the APK on Android or the `.app` on an iOS Simulator. Channel surfing needs a release build. It does not work in Expo Go or in a development build.
 2. Open a PR against `main`. Wait for the comment from the Expo GitHub app.
 3. Scan the QR code, or enter the PR number in **Open a PR channel** in the app.
-4. Push another commit to the PR. A new comment appears with the new commit. Scan it again, or tap **Check for update**.
+4. Push another commit to the PR. The workflow publishes it to the same channel and edits the same comment to show the new commit. Scan the code again, or tap **Check for update**.
 
 On a simulator, open the link from a terminal:
 

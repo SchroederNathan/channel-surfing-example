@@ -12,6 +12,7 @@ export default function Remote() {
   const [tuneMessage, setTuneMessage] = useState<string | null>(null);
 
   const show = LINEUP[index];
+  const upNext = LINEUP[stepChannel(index, 1)];
   const isFavorite = favorites.includes(show.number);
 
   function surfTo(next: number) {
@@ -36,6 +37,7 @@ export default function Remote() {
         <Text testID="now-playing-show" style={styles.show}>
           {show.name}
         </Text>
+        <Text testID="up-next" style={styles.upNext}>{`Up next: CH ${upNext.number} · ${upNext.name}`}</Text>
       </View>
 
       <View style={styles.row}>
@@ -119,6 +121,7 @@ const styles = StyleSheet.create({
   screen: { borderRadius: 16, paddingVertical: 32, paddingHorizontal: 20, gap: 6, alignItems: 'center' },
   channel: { color: '#FFFFFF', fontSize: 44, fontWeight: '800', fontVariant: ['tabular-nums'] },
   show: { color: '#FFFFFF', fontSize: 18, opacity: 0.9 },
+  upNext: { color: '#FFFFFF', fontSize: 14, opacity: 0.75, marginTop: 6 },
   row: { flexDirection: 'row', gap: 10 },
   card: { borderRadius: 12, padding: 16, gap: 10 },
   cardTitle: { fontSize: 17, fontWeight: '600' },

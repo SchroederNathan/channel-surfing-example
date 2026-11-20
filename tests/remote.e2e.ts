@@ -40,3 +40,12 @@ test('favorites add and remove the current channel', async ({ app, screen }) => 
   await screen.getByRole('button', 'Remove from favorites').tap();
   await expect(screen.getByText('No favorites yet.')).toBeVisible();
 });
+
+test('up next shows the channel after the current one', async ({ app, screen }) => {
+  await app.open();
+  await screen.getByRole('button', 'Open the remote').tap();
+  await expect(screen.getByTestId('up-next')).toHaveText('Up next: CH 4 · Reef Report');
+
+  await screen.getByRole('button', 'Channel down').tap();
+  await expect(screen.getByTestId('up-next')).toHaveText('Up next: CH 2 · Dawn Patrol');
+});

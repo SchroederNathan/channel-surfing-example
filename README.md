@@ -1,56 +1,55 @@
-# Welcome to your Expo app 👋
+# Channel Surfing with EAS Update
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This Expo app shows [channel surfing](https://docs.expo.dev/eas-update/channel-surfing/). One installed release build switches between EAS Update channels at runtime. Every pull request gets its own channel, and a QR code on the PR opens the app on that channel.
 
-## Get started
+## How it works
 
-1. Install dependencies
+1. A PR opens or gets a new commit. The `pr-preview` workflow publishes the commit to the channel `pr-<number>`. EAS creates the channel on the first publish.
+2. The same workflow posts a PR comment with a QR code for `channelsurfing://surf?channel=pr-<number>`.
+3. A tester scans the QR code. The app calls `Updates.setUpdateRequestHeadersOverride({ 'expo-channel-name': 'pr-<number>' })`, downloads the update, and reloads.
+4. The home screen banner shows the PR number and commit. **Back to production** clears the override.
 
-   ```bash
-   npm install
-   ```
+Merges to `main` publish to the `production` channel through the `production` workflow. The release build starts on that channel.
 
-2. Start the app
+| File | Role |
+| --- | --- |
+| `.eas/workflows/pr-preview.yml` | Publishes each PR commit to `pr-<number>` and comments the QR code. |
+| `.eas/workflows/production.yml` | Publishes `main` to `production`. |
+| `.eas/workflows/build.yml` | Makes an Android APK and an iOS Simulator app on demand. |
+| `src/channel-surfing/` | Parses channel names and runs the switch flow. |
+| `src/app/surf.tsx` | The deep-link screen for `channelsurfing://surf?channel=...`. |
 
-   ```bash
-   npx expo start
-   ```
+## Try it
 
-In the output, you'll find options to open the app in a
+1. Make a tester build. Run `eas workflow:run .eas/workflows/build.yml`, then install the APK on Android or the `.app` on an iOS Simulator. Channel surfing needs a release build. It does not work in Expo Go or in a development build.
+2. Open a PR against `main`. Wait for the comment from the Expo GitHub app.
+3. Scan the QR code, or enter the PR number in **Open a PR channel** in the app.
+4. Push another commit to the PR. A new comment appears with the new commit. Scan it again, or tap **Check for update**.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+On a simulator, open the link from a terminal:
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+xcrun simctl openurl booted "channelsurfing://surf?channel=pr-1"
+adb shell am start -a android.intent.action.VIEW -d "channelsurfing://surf?channel=pr-1"
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+## Rules the app enforces
 
-### Other setup steps
+- The app accepts only `production` and `pr-<number>` from a deep link. Other values show an error.
+- A PR update must have the same runtime version as the build. This project uses the `appVersion` policy, so a PR that changes native code needs a new build and a version bump.
+- If a channel has no compatible update, the app keeps its current channel and shows a message.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Set up your own copy
 
-## Learn more
+1. `npm install`, then `eas init` to create your EAS project.
+2. Link the GitHub repository on the project's GitHub settings page on expo.dev.
+3. Change `owner`, `ios.bundleIdentifier`, and `android.package` in `app.json`.
+4. Run the build workflow and open a PR.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Local checks
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```sh
+npx tsc --noEmit
+npx expo lint
+npm test
+```

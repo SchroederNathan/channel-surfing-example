@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.exponathan.channelsurfing",
+      "bundleIdentifier": "com.nathanschroeder.channelsurfing",
       "config": {
         "usesNonExemptEncryption": false
       }

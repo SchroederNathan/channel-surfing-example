@@ -47,8 +47,9 @@ jobs:
       build_id: ${{ needs.get_build.outputs.build_id }}
       profile: e2e
 
+  # The PR comment: e2e's test report, then before and after images of each changed screen.
   tests:
-    name: Run the e2e suite on Expo Simulators
+    name: Run the e2e suite and compare screens
     needs: [get_build]
     after: [build, repack]
     environment: preview
@@ -56,44 +57,45 @@ jobs:
       CI: '1'
       E2E_TELEMETRY_DISABLED: '1'
       E2E_IOS_BUILD_ID: ${{ after.build.outputs.build_id || after.repack.outputs.build_id }}
-    outputs:
-      summary: ${{ steps.run.outputs.summary }}
+      BASELINE_URL: https://channel-surfing--e2e-screens-main.expo.app
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      WORKFLOW_URL: ${{ workflow.url }}
     steps:
       - uses: eas/checkout
       - uses: eas/install_node_modules
-      - id: run
-        name: Run e2e
+      - name: Run e2e and comment on the PR
         run: |
           : "${E2E_IOS_BUILD_ID:?No build. Check the build or repack job of this run.}"
+          node scripts/e2e-pr.mjs fetch-baselines
           set +e
-          env -u GITHUB_TOKEN npx e2e run --reporter list,markdown
+          # The tests never get the GitHub token.
+          env -u GITHUB_TOKEN npx e2e run --exclude-tag screens --reporter list,markdown
           status=$?
+          # A changed screen is evidence for the reviewer, not a failure.
+          env -u GITHUB_TOKEN npx e2e run --tag screens --retries 0 --output .e2e-screens --reporter list
           set -e
-          if [ -s .e2e/summary.md ]; then
-            set-output summary "$(head -c 60000 .e2e/summary.md)"
-          else
-            set-output summary "### 🔴 e2e did not write a summary (exit code $status)"
+          node scripts/e2e-pr.mjs evidence
+          if ls .e2e-evidence/*.png > /dev/null 2>&1; then
+            EVIDENCE_URL=$(npx --yes eas-cli@latest deploy --export-dir .e2e-evidence --json --non-interactive \
+              | node -e 'let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => console.log(JSON.parse(s).url))')
+            export EVIDENCE_URL
           fi
+          node scripts/e2e-pr.mjs comment
           exit $status
       - uses: eas/upload_artifact
         if: ${{ always() }}
         with:
           type: other
           name: e2e-tests
-          path: .e2e
+          path: |
+            .e2e
+            .e2e-screens
 
-  comment:
-    name: Comment the test results
-    type: github-comment
-    after: [tests]
-    params:
-      payload: |
-        ${{ after.tests.outputs.summary || '### 🔴 e2e: the test job did not finish' }}
-
-        [Workflow run, screenshots, and logs](${{ workflow.url }})
-
+  # The PR review: an agent reads the diff, uses the app, and reports findings.
   review:
-    name: AI review of the change on Expo Simulators
+    name: AI review of the change
     needs: [get_build]
     after: [build, repack]
     environment: preview
@@ -119,10 +121,16 @@ jobs:
           set +e
           # The agent reads the diff and drives the app. It never gets the GitHub token.
           env -u GITHUB_TOKEN npx e2e explore --changed-since "origin/$BASE_REF" --max-steps 6 \
-            --output .e2e-review --reporter list,markdown --video on
+            --output .e2e-review --reporter list --video on
           status=$?
           set -e
-          node scripts/post-pr-review.mjs .e2e-review
+          node scripts/e2e-pr.mjs evidence
+          if ls .e2e-evidence/*.png > /dev/null 2>&1; then
+            EVIDENCE_URL=$(npx --yes eas-cli@latest deploy --export-dir .e2e-evidence --json --non-interactive \
+              | node -e 'let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => console.log(JSON.parse(s).url))')
+            export EVIDENCE_URL
+          fi
+          node scripts/e2e-pr.mjs review
           # Findings are a review aid, not a merge gate. Fail only on config, device, or model errors.
           if [ "$status" -gt 1 ]; then exit $status; fi
       - uses: eas/upload_artifact

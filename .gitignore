@@ -51,3 +51,9 @@ example
 .e2e/summary.md
 .e2e/logs/
 .e2e/videos/
+# e2e CI output. Screen baselines live on Expo Hosting, not in git.
+.e2e-screens/
+.e2e-screens*.json
+.e2e-review/
+.e2e-evidence/
+tests/*-snapshots/

@@ -63,7 +63,7 @@ export default function Remote() {
             onSubmitEditing={tune}
             style={[styles.input, { color: palette.text, borderColor: palette.border }]}
           />
-          <RemoteButton palette={palette} label="Tune" onPress={tune} />
+          <RemoteButton palette={palette} label="Tune" onPress={tune} grow={false} />
         </View>
         {tuneMessage !== null && (
           <Text testID="tune-message" style={{ color: palette.danger }}>
@@ -88,7 +88,17 @@ export default function Remote() {
   );
 }
 
-function RemoteButton({ palette, label, onPress }: { palette: Palette; label: string; onPress: () => void }) {
+function RemoteButton({
+  palette,
+  label,
+  onPress,
+  grow = true,
+}: {
+  palette: Palette;
+  label: string;
+  onPress: () => void;
+  grow?: boolean;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -96,6 +106,7 @@ function RemoteButton({ palette, label, onPress }: { palette: Palette; label: st
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
+        grow && styles.grow,
         { borderColor: palette.border, backgroundColor: palette.card, opacity: pressed ? 0.7 : 1 },
       ]}>
       <Text style={[styles.buttonLabel, { color: palette.text }]}>{label}</Text>
@@ -111,8 +122,8 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 10 },
   card: { borderRadius: 12, padding: 16, gap: 10 },
   cardTitle: { fontSize: 17, fontWeight: '600' },
+  grow: { flexGrow: 1 },
   button: {
-    flexGrow: 1,
     borderWidth: 1.5,
     borderRadius: 10,
     paddingVertical: 12,

@@ -27,7 +27,7 @@ export default {
       name: 'ios',
       engine: mobile({
         platform: 'ios',
-        ...(iosBuildId ? { device: expoSimulators({ buildId: iosBuildId, maxDurationMinutes: 30 }), videoTouches: false } : {}),
+        ...(iosBuildId ? { device: expoSimulators({ buildId: iosBuildId, device: 'iPhone 17', maxDurationMinutes: 30 }), videoTouches: false } : {}),
       }),
       app: { bundleId: 'com.nathanschroeder.channelsurfing' },
     },

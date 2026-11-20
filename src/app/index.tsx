@@ -110,7 +110,10 @@ function Detail({ palette, label, value }: { palette: Palette; label: string; va
   return (
     <View style={styles.detail}>
       <Text style={{ color: palette.muted }}>{label}</Text>
-      <Text selectable style={[styles.detailValue, { color: palette.text }]}>
+      <Text
+        selectable
+        testID={`detail-${label.toLowerCase().replaceAll(' ', '-')}`}
+        style={[styles.detailValue, { color: palette.text }]}>
         {value}
       </Text>
     </View>

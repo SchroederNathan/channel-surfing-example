@@ -1,0 +1,19 @@
+name: Tester builds
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_android:
+    name: Android APK (production channel)
+    type: build
+    params:
+      platform: android
+      profile: preview
+
+  build_ios_simulator:
+    name: iOS Simulator app (production channel)
+    type: build
+    params:
+      platform: ios
+      profile: preview-simulator

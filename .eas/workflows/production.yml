@@ -1,0 +1,15 @@
+name: Production update
+
+on:
+  push:
+    branches: ['main']
+
+concurrency:
+  group: production-update
+
+jobs:
+  publish_update:
+    name: Publish update to production
+    type: update
+    params:
+      channel: production

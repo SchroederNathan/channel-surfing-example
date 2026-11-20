@@ -1,0 +1,40 @@
+name: PR preview channel
+
+on:
+  pull_request:
+    branches: ['main']
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel_in_progress: true
+
+jobs:
+  publish_update:
+    name: Publish update to the PR channel
+    type: update
+    env:
+      EXPO_PUBLIC_PR_NUMBER: ${{ github.event.pull_request.number }}
+      EXPO_PUBLIC_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+    params:
+      channel: pr-${{ github.event.pull_request.number }}
+      message: 'PR #${{ github.event.pull_request.number }} @ ${{ substring(github.event.pull_request.head.sha, 0, 7) }}: ${{ github.event.pull_request.title }}'
+
+  comment:
+    name: Post QR code to the PR
+    needs: [publish_update]
+    type: github-comment
+    params:
+      payload: |
+        ## 🏄 Channel `pr-${{ github.event.pull_request.number }}` is ready
+
+        Commit `${{ substring(github.event.pull_request.head.sha, 0, 7) }}` is live on the `pr-${{ github.event.pull_request.number }}` update channel.
+
+        <img alt="QR code that opens channel pr-${{ github.event.pull_request.number }}" width="240" height="240" src="https://api.qrserver.com/v1/create-qr-code/?size=480x480&margin=16&data=channelsurfing%3A%2F%2Fsurf%3Fchannel%3Dpr-${{ github.event.pull_request.number }}" />
+
+        1. Install the Channel Surfing release build (it starts on the `production` channel).
+        2. Scan the QR code with the camera. It opens `channelsurfing://surf?channel=pr-${{ github.event.pull_request.number }}`.
+        3. The app switches to this channel, downloads the update, and reloads. The banner shows `PR #${{ github.event.pull_request.number }}` and commit `${{ substring(github.event.pull_request.head.sha, 0, 7) }}`.
+
+        No camera? Open the app, enter `${{ github.event.pull_request.number }}` in **Open a PR channel**, and tap **Go**.
+
+        [Update group on expo.dev](https://expo.dev/accounts/${{ account.name }}/projects/${{ app.slug }}/updates/${{ needs.publish_update.outputs.first_update_group_id }})

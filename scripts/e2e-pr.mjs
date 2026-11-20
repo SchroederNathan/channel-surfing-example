@@ -21,6 +21,7 @@ const SCREENS_DIR = '.e2e-screens';
 const REVIEW_DIR = '.e2e-review';
 const EVIDENCE_DIR = '.e2e-evidence';
 const COMMENT_MARKER = '<!-- e2e-pr-comment -->';
+const REVIEW_MARKER = '<!-- e2e-pr-review -->';
 
 const env = process.env;
 const shortSha = (sha) => (sha ?? '').slice(0, 7) || 'unknown';
@@ -171,11 +172,9 @@ function screensSection() {
     .map(([n, label]) => `${n} ${label}`)
     .join(' · ');
 
-  const lines = [
-    `### 📸 Screens: ${counts}`,
-    '',
-    `Before is \`main\` at \`${shortSha(base?.sha)}\`. After is this PR at \`${shortSha(env.HEAD_SHA)}\`. Red pixels in the diff changed.`,
-  ];
+  const before = base ? `Before is \`main\` at \`${shortSha(base.sha)}\`.` : 'There are no `main` screenshots yet.';
+  const lines = [`### 📸 Screens: ${counts}`, '', `${before} After is this PR at \`${shortSha(env.HEAD_SHA)}\`.`];
+  if (count('changed') > 0) lines.push('Red pixels in the diff changed.');
   for (const screen of screens.filter((entry) => entry.state === 'changed')) {
     lines.push(
       '',
@@ -274,14 +273,18 @@ async function review() {
     const commit = `Explored commit \`${shortSha(env.HEAD_SHA)}\` on an Expo Simulators iOS session. [Workflow run, trace, and video](${env.WORKFLOW_URL})`;
     body = [page, '', findingsEvidence(explore), '', commit, '', footer].filter((part, index, all) => part !== '' || all[index - 1] !== '').join('\n').trim();
   }
+  body = `${REVIEW_MARKER}\n${body}`;
   if (!canPost(body)) return;
 
+  // One review per PR, edited on each push, so the PR keeps one current AI review.
+  const reviews = `/repos/${env.GITHUB_REPOSITORY}/pulls/${env.PR_NUMBER}/reviews`;
+  const existing = (await github('GET', `${reviews}?per_page=100`)).find(
+    (entry) => entry.body?.startsWith(REVIEW_MARKER) || entry.body?.includes('e2e explore:'),
+  );
   // The token's user is often the PR author, and GitHub lets an author post only COMMENT reviews.
-  const posted = await github('POST', `/repos/${env.GITHUB_REPOSITORY}/pulls/${env.PR_NUMBER}/reviews`, {
-    commit_id: env.HEAD_SHA,
-    body,
-    event: 'COMMENT',
-  });
+  const posted = existing
+    ? await github('PUT', `${reviews}/${existing.id}`, { body })
+    : await github('POST', reviews, { commit_id: env.HEAD_SHA, body, event: 'COMMENT' });
   console.log(`Review: ${posted.html_url}`);
 }
 

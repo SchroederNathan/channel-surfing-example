@@ -40,3 +40,14 @@ test('favorites add and remove the current channel', async ({ app, screen }) => 
   await screen.getByRole('button', 'Remove from favorites').tap();
   await expect(screen.getByText('No favorites yet.')).toBeVisible();
 });
+
+test('last channel returns to the channel before the switch', async ({ app, screen }) => {
+  await app.open();
+  await screen.getByRole('button', 'Open the remote').tap();
+  await screen.getByTestId('tune-input').fill('9');
+  await screen.getByRole('button', 'Tune').tap();
+  await expect(screen.getByTestId('now-playing-channel')).toHaveText('CH 9');
+
+  await screen.getByRole('button', 'Last').tap();
+  await expect(screen.getByTestId('now-playing-channel')).toHaveText('CH 2');
+});

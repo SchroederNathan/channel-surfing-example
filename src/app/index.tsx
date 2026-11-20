@@ -54,6 +54,13 @@ export default function Home() {
           onPress={() => runningChannel && surf(runningChannel)}
         />
         <SurfStatus state={state} />
+        <Button
+          palette={palette}
+          label="Open the remote"
+          color={palette.text}
+          disabled={false}
+          onPress={() => router.push('/remote')}
+        />
       </View>
 
       <Card palette={palette}>

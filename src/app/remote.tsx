@@ -7,6 +7,7 @@ import { type Palette, usePalette, variantColor } from '@/theme';
 export default function Remote() {
   const palette = usePalette();
   const [index, setIndex] = useState(0);
+  const [lastIndex, setLastIndex] = useState<number | null>(null);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [tuneInput, setTuneInput] = useState('');
   const [tuneMessage, setTuneMessage] = useState<string | null>(null);
@@ -16,6 +17,7 @@ export default function Remote() {
 
   function surfTo(next: number) {
     setIndex(next);
+    setLastIndex(next);
     setTuneMessage(null);
   }
 
@@ -40,6 +42,7 @@ export default function Remote() {
 
       <View style={styles.row}>
         <RemoteButton palette={palette} label="Channel down" onPress={() => surfTo(stepChannel(index, -1))} />
+        {lastIndex !== null && <RemoteButton palette={palette} label="Last" onPress={() => surfTo(lastIndex)} />}
         <RemoteButton palette={palette} label="Channel up" onPress={() => surfTo(stepChannel(index, 1))} />
       </View>
 

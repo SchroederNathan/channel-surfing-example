@@ -91,6 +91,7 @@ function Banner() {
       <Text style={styles.bannerSubtitle}>
         {pr ? `Commit ${pr.commitSha?.slice(0, 7) ?? 'unknown'}` : 'The build channel'}
       </Text>
+      <Text style={styles.bannerTagline}>{"🏄 Surf's up from this PR"}</Text>
     </View>
   );
 }
@@ -142,6 +143,7 @@ const styles = StyleSheet.create({
   banner: { borderRadius: 16, paddingVertical: 28, paddingHorizontal: 20, gap: 4 },
   bannerTitle: { color: '#FFFFFF', fontSize: 32, fontWeight: '800' },
   bannerSubtitle: { color: '#FFFFFF', fontSize: 16, opacity: 0.9, fontVariant: ['tabular-nums'] },
+  bannerTagline: { color: '#FFFFFF', fontSize: 18, fontWeight: '700', marginTop: 8 },
   notice: { fontSize: 15, lineHeight: 21 },
   card: { borderRadius: 12, padding: 16, gap: 10 },
   cardTitle: { fontSize: 17, fontWeight: '600' },

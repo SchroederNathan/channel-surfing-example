@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "channel-surfing",
+    "name": "Channel Surfing",
     "slug": "channel-surfing",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,8 @@
     "scheme": "channelsurfing",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.exponathan.channelsurfing"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +18,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.exponathan.channelsurfing"
     },
     "web": {
       "output": "server",
@@ -37,6 +39,26 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "cf7109bb-f5dd-4bae-82f6-12f40521dca2"
+      }
+    },
+    "owner": "exponathan",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/cf7109bb-f5dd-4bae-82f6-12f40521dca2",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     }
   }
 }

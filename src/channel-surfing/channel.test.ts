@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { test } from 'node:test';
 import { equal, ok } from 'node:assert/strict';
-import { BUILD_CHANNEL, parseChannelName, prChannel, surfLink } from './channel.ts';
+import { BUILD_CHANNEL, parseChannelName, prChannel, surfLink, tagInitialSurfPath } from './channel.ts';
 
 test('accepts production and pr-<positive integer>', () => {
   for (const name of ['production', 'pr-1', 'pr-12', 'pr-9999999']) {
@@ -52,4 +52,13 @@ test('surf link deep-links into the surf route', () => {
   ok(channel);
   equal(surfLink(channel), 'channelsurfing://surf?channel=pr-12');
   equal(surfLink(BUILD_CHANNEL), 'channelsurfing://surf?channel=production');
+});
+
+test('tags only the initial surf link', () => {
+  equal(tagInitialSurfPath('channelsurfing://surf?channel=pr-1', true), 'channelsurfing://surf?channel=pr-1&launch=1');
+  equal(tagInitialSurfPath('channelsurfing:///surf?channel=pr-1', true), 'channelsurfing:///surf?channel=pr-1&launch=1');
+  equal(tagInitialSurfPath('/surf?channel=pr-2', true), '/surf?channel=pr-2&launch=1');
+  equal(tagInitialSurfPath('channelsurfing://surf?channel=pr-1', false), 'channelsurfing://surf?channel=pr-1');
+  equal(tagInitialSurfPath('channelsurfing://remote', true), 'channelsurfing://remote');
+  equal(tagInitialSurfPath('channelsurfing://surfboard', true), 'channelsurfing://surfboard');
 });

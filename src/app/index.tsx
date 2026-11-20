@@ -91,7 +91,7 @@ function Banner() {
       <Text style={styles.bannerSubtitle}>
         {pr ? `Commit ${pr.commitSha?.slice(0, 7) ?? 'unknown'}` : 'The build channel'}
       </Text>
-      <Text style={styles.bannerTagline}>{"🏄 Surf's up from this PR"}</Text>
+      <Text style={styles.bannerTagline}>{"🏄 Surf's up from this PR, round two"}</Text>
     </View>
   );
 }
